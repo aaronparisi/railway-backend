@@ -1,0 +1,41 @@
+import express from 'express';
+import axios from 'axios';
+
+const app = express();
+const port = process.env.PORT || 3000;
+
+const requiredEnvVars = ['GH_USER', 'GH_AUTH'];
+for (const envVar of requiredEnvVars) {
+  if (!process.env[envVar]) {
+    console.error('Missing env var: ', envVar);
+    process.exit(1);
+  }
+}
+
+const GH_USER = process.env.GH_USER;
+const GH_AUTH = process.env.GH_AUTH;
+
+app.get('/repos', async (req, res) => {
+  try {
+    const response = await axios.get(
+      `https://api.github.com/users/${GH_USER}/repos`,
+      {
+        headers: {
+          Authorization: `Bearer ${GH_AUTH}`,
+        },
+      }
+    );
+
+    const repositories = response.data.map((repo) => repo.name);
+    res.json(repositories);
+  } catch (error) {
+    console.error('Error fetching repositories: ', error.message);
+    res
+      .status(500)
+      .json({ error: 'An error occurred while fetching repositories.' });
+  }
+});
+
+app.listen(port, () => {
+  console.log('Server is listening on port: ', port);
+});
