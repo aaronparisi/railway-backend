@@ -1,8 +1,12 @@
 import express from 'express';
 import axios from 'axios';
+import dotenv from 'dotenv';
+import cors from 'cors';
+
+dotenv.config();
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 8080;
 
 const requiredEnvVars = ['GH_USER', 'GH_AUTH'];
 for (const envVar of requiredEnvVars) {
@@ -15,7 +19,10 @@ for (const envVar of requiredEnvVars) {
 const GH_USER = process.env.GH_USER;
 const GH_AUTH = process.env.GH_AUTH;
 
+app.use(cors({ origin: 'http://localhost:3000' }));
+
 app.get('/repos', async (req, res) => {
+  console.log('request received: /repos');
   try {
     const response = await axios.get(
       `https://api.github.com/users/${GH_USER}/repos`,
@@ -26,8 +33,8 @@ app.get('/repos', async (req, res) => {
       }
     );
 
-    const repositories = response.data.map((repo) => repo.name);
-    res.json(repositories);
+    // const repositories = response.data.map((repo) => repo.name);
+    res.json(response.data);
   } catch (error) {
     console.error('Error fetching repositories: ', error.message);
     res
