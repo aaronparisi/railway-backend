@@ -22,7 +22,7 @@ console.log('gh_user: ', GH_USER, new Date());
 
 const allowedOrigins = [
   'http://localhost:3000',
-  'http://gh-issue-tracker.aaronparisi.dev',
+  'https://railway-gh-issue-tracker.vercel.app/',
 ];
 app.use(cors({ origin: allowedOrigins })); // TODO make this depend on prod vs dev?
 
