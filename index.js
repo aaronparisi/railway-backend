@@ -18,6 +18,7 @@ for (const envVar of requiredEnvVars) {
 
 const GH_USER = process.env.GH_USER;
 const GH_AUTH = process.env.GH_AUTH;
+console.log('gh_user: ', GH_USER);
 
 app.use(cors({ origin: 'http://localhost:3000' }));
 
@@ -25,7 +26,8 @@ app.get('/repos', async (req, res) => {
   console.log('request received: /repos');
   try {
     const response = await axios.get(
-      `https://api.github.com/users/${GH_USER}/repos`,
+      // `https://api.github.com/users/${GH_USER}/repos`,
+      `https://api.github.com/user/repos`,
       {
         headers: {
           Authorization: `Bearer ${GH_AUTH}`,
@@ -33,8 +35,11 @@ app.get('/repos', async (req, res) => {
       }
     );
 
-    // const repositories = response.data.map((repo) => repo.name);
-    res.json(response.data);
+    const repositories = response.data.map((repo) => ({
+      name: repo.name,
+      url: repo.url,
+    }));
+    res.json(repositories);
   } catch (error) {
     console.error('Error fetching repositories: ', error.message);
     res
@@ -53,7 +58,6 @@ app.get('/issues', async (req, res) => {
     }
 
     console.log('requesting issues for repo: ', repoName);
-    console.log('gh_user: ', GH_USER);
     const response = await axios.get(
       `https://api.github.com/repos/${GH_USER}/${repoName}/issues`,
       {
