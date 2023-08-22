@@ -44,7 +44,7 @@ app.get('/repos', async (req, res) => {
     res.json(
       response.data.map((repo) => ({
         name: repo.name,
-        url: repo.url,
+        url: repo.html_url,
       }))
     );
   } catch (error) {
