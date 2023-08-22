@@ -20,7 +20,11 @@ const GH_USER = process.env.GH_USER;
 const GH_AUTH = process.env.GH_AUTH;
 console.log('gh_user: ', GH_USER);
 
-app.use(cors({ origin: 'http://localhost:3000' }));
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://gh-issue-tracker.aaronparisi.dev',
+];
+app.use(cors({ origin: allowedOrigins })); // TODO make this depend on prod vs dev?
 
 app.get('/repos', async (req, res) => {
   console.log('request received: /repos');
