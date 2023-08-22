@@ -35,11 +35,12 @@ app.get('/repos', async (req, res) => {
       }
     );
 
-    const repositories = response.data.map((repo) => ({
-      name: repo.name,
-      url: repo.url,
-    }));
-    res.json(repositories);
+    res.json(
+      response.data.map((repo) => ({
+        name: repo.name,
+        url: repo.url,
+      }))
+    );
   } catch (error) {
     console.error('Error fetching repositories: ', error.message);
     res
@@ -59,7 +60,7 @@ app.get('/issues', async (req, res) => {
 
     console.log('requesting issues for repo: ', repoName);
     const response = await axios.get(
-      `https://api.github.com/repos/${GH_USER}/${repoName}/issues`,
+      `https://api.github.com/repos/${GH_USER}/${repoName}/issues?state=all`,
       {
         headers: {
           Authorization: `Bearer ${GH_AUTH}`,
@@ -67,8 +68,15 @@ app.get('/issues', async (req, res) => {
       }
     );
 
-    const issues = response.data;
-    res.json(issues);
+    res.json(
+      response.data.map((issue) => ({
+        labels: issue.labels,
+        title: issue.title,
+        url: issue.html_url,
+        state: issue.state,
+        body: issue.body,
+      }))
+    );
   } catch (error) {
     console.error('Error fetching repositories: ', error.message);
     res
