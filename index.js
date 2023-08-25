@@ -48,7 +48,7 @@ const getRepoData = async () => {
       };
     });
 
-    // fetch issues
+    // fetch issues - NOTE for... of is important here else server starts before axios is done
     for (const repo of repoRes.data) {
       console.log('about to get issues for repo: ', repo.name, new Date());
       const issueRes = await axios.get(
