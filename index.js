@@ -31,15 +31,11 @@ app.use(cors({ origin: allowedOrigins })); // TODO make this depend on prod vs d
 app.get('/repos', async (req, res) => {
   console.log('request received: /repos', new Date());
   try {
-    const response = await axios.get(
-      // `https://api.github.com/users/${GH_USER}/repos`,
-      `https://api.github.com/user/repos`,
-      {
-        headers: {
-          Authorization: `Bearer ${GH_AUTH}`,
-        },
-      }
-    );
+    const response = await axios.get(`https://api.github.com/user/repos`, {
+      headers: {
+        Authorization: `Bearer ${GH_AUTH}`,
+      },
+    });
 
     res.json(
       response.data.map((repo) => ({
@@ -84,10 +80,8 @@ app.get('/issues', async (req, res) => {
       }))
     );
   } catch (error) {
-    console.error('Error fetching repositories: ', error.message);
-    res
-      .status(500)
-      .json({ error: 'An error occurred while fetching repositories.' });
+    console.error('Error fetching issues: ', error.message);
+    res.status(500).json({ error: 'An error occurred while fetching issues.' });
   }
 });
 
