@@ -40,17 +40,16 @@ const getRepoData = async () => {
       },
     });
 
-    repoRes.data.forEach((repo) => {
+    // fetch issues - NOTE `for... of` is important here else server starts before axios is done
+    for (const repo of repoRes.data) {
+      console.log('caching repo: ', repo.name);
       repoCache[repo.name] = {
         name: repo.name,
         url: repo.html_url,
         issues: [],
       };
-    });
 
-    // fetch issues - NOTE for... of is important here else server starts before axios is done
-    for (const repo of repoRes.data) {
-      console.log('about to get issues for repo: ', repo.name, new Date());
+      console.log('fetching issues for repo: ', repo.name, new Date());
       const issueRes = await axios.get(
         `https://api.github.com/repos/${GH_USER}/${repo.name}/issues?state=all`,
         {
@@ -59,7 +58,7 @@ const getRepoData = async () => {
           },
         }
       );
-      console.log('done getting issues for repo: ', repo.name, new Date());
+      console.log('done fetching issues for repo: ', repo.name, new Date());
 
       repoCache[repo.name].issues = issueRes.data.map((issue) => ({
         labels: issue.labels,
