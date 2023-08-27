@@ -28,67 +28,69 @@ const allowedOrigins = [
 ];
 app.use(cors({ origin: allowedOrigins })); // TODO make this depend on prod vs dev?
 
-let repoCache = {};
-
-const getRepoData = async () => {
+app.get('/repos', async (req, res) => {
+  console.log('request received: /repos', new Date());
   try {
-    // fetch repos
-    console.log('fetching repos for user: ', GH_USER, new Date());
-    const repoRes = await axios.get(`https://api.github.com/user/repos`, {
-      headers: {
-        Authorization: `Bearer ${GH_AUTH}`,
-      },
-    });
+    const response = await axios.get(
+      // `https://api.github.com/users/${GH_USER}/repos`,
+      `https://api.github.com/user/repos`,
+      {
+        headers: {
+          Authorization: `Bearer ${GH_AUTH}`,
+        },
+      }
+    );
 
-    // fetch issues - NOTE `for... of` is important here else server starts before axios is done
-    for (const repo of repoRes.data) {
-      console.log('caching repo: ', repo.name);
-      repoCache[repo.name] = {
+    res.json(
+      response.data.map((repo) => ({
         name: repo.name,
         url: repo.html_url,
-        issues: [],
-      };
+      }))
+    );
+  } catch (error) {
+    console.error('Error fetching repositories: ', error.message);
+    res
+      .status(500)
+      .json({ error: 'An error occurred while fetching repositories.' });
+  }
+});
 
-      console.log('fetching issues for repo: ', repo.name, new Date());
-      const issueRes = await axios.get(
-        `https://api.github.com/repos/${GH_USER}/${repo.name}/issues?state=all`,
-        {
-          headers: {
-            Authorization: `Bearer ${GH_AUTH}`,
-          },
-        }
-      );
-      console.log('done fetching issues for repo: ', repo.name, new Date());
+app.get('/issues', async (req, res) => {
+  console.log('request received: /issues', new Date());
+  try {
+    const repoName = req.query.repo;
 
-      repoCache[repo.name].issues = issueRes.data.map((issue) => ({
+    if (!repoName) {
+      return res.status(400).json({ error: 'Missing "repo" query param' });
+    }
+
+    console.log('requesting issues for repo: ', repoName, new Date());
+    const response = await axios.get(
+      `https://api.github.com/repos/${GH_USER}/${repoName}/issues?state=all`,
+      {
+        headers: {
+          Authorization: `Bearer ${GH_AUTH}`,
+        },
+      }
+    );
+
+    res.json(
+      response.data.map((issue) => ({
         labels: issue.labels,
         title: issue.title,
         url: issue.html_url,
         state: issue.state,
         body: issue.body,
-      }));
-    }
+      }))
+    );
   } catch (error) {
-    console.error('Error fetching git data: ', error.message);
-    throw new Error(error.message);
+    console.error('Error fetching repositories: ', error.message);
+    res
+      .status(500)
+      .json({ error: 'An error occurred while fetching repositories.' });
   }
-};
-
-app.get('/all-data', async (req, res) => {
-  console.log('request received: /all-data', new Date());
-  res.json(repoCache);
 });
 
-const start = async () => {
-  try {
-    await getRepoData();
-
-    app.listen(port, () => {
-      console.log('Server is listening on port: ', port, new Date());
-    });
-  } catch (error) {
-    console.error('Error initializing server', error.message);
-  }
-};
-
-start();
+app.listen(port, () => {
+  console.log('Server is listening on port: ', port, new Date());
+});
